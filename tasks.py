@@ -25,6 +25,7 @@ def start_process(pid, callback=None):
 
         proc.status = proc.FINISHED
         proc.finished_on = datetime.now()
+        proc.task_id = ""
         proc.save()
 
         logger.info("Finished process %s" % proc)
@@ -33,6 +34,7 @@ def start_process(pid, callback=None):
         # FIXME: log reason in the DB ?
         proc.status = proc.ABORTED
         proc.finished_on = datetime.now()
+        proc.task_id = ""
         proc.save()
 
     #if callback:
