@@ -8,6 +8,10 @@ from celery.task.control import revoke
 class Process(models.Model):
     """Representation of a process.
     """
+    class Meta:
+        ordering = ('status', 'created_on')
+        get_latest_by = 'created_on'
+
     # FIXME: see matching data in celery API (status + ETA)
     CREATED = 'created'
     STARTED = 'started'
