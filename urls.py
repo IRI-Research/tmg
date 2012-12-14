@@ -4,7 +4,7 @@ from tmg import views
 
 urlpatterns = patterns('',
                        url(r'^process/$', views.ProcessList.as_view(), name='process-list'),
-                       url(r'^process/(?P<pk>[0-9]+)/$', views.ProcessDetail.as_view(), name='processx-detail'),
+                       url(r'^process/(?P<pk>[0-9]+)/$', views.ProcessDetail.as_view(), name='process-detail'), 
                        )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
