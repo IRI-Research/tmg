@@ -88,10 +88,9 @@ class Process(models.Model):
 
     def save(self, *p, **kw):
         super(Process, self).save(*p, **kw)
-        # Start the process
-        # Putting the import here works around the circular dependency
         if self.status == self.CREATED:
             # Start the process
+            # Putting the import here works around the circular dependency
             from tasks import start_process
             start_process.delay(self.pk)
 
