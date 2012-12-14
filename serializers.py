@@ -18,4 +18,4 @@ class ProcessSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Process
-        fields = ('id', 'owner', 'source', 'operation', 'parameters', 'task_id', 'created_on', 'started_on', 'finished_on', 'status', 'progress', 'eta')
+        fields = ('id', 'url', 'owner', 'source', 'operation', 'parameters', 'task_id', 'created_on', 'started_on', 'finished_on', 'status', 'progress', 'eta')
