@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save
 from fields import JSONField
@@ -41,7 +42,10 @@ class Process(models.Model):
     owner = models.ForeignKey(User, related_name='processes')
 
     # We do not use a FileField here since we store here server-side filenames
-    source = models.CharField(max_length=1024, help_text='Source filename for the operation')
+    source = models.FilePathField(max_length=1024,
+                                  path=settings.MEDIA_ROOT,
+                                  recursive=True,
+                                  help_text='Source filename for the operation')
 
     # id of the operation (transcode, shotdetect, etc)
     operation = models.CharField(max_length=255, help_text='Operation class identifier', choices=[ (name, kl.__doc__.splitlines()[0]) for (name, kl) in operations.REGISTERED_OPERATIONS ])
