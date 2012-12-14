@@ -9,6 +9,7 @@ class Process(models.Model):
     """Representation of a process.
     """
     class Meta:
+        verbose_name_plural = "Processes"
         ordering = ('status', 'created_on')
         get_latest_by = 'created_on'
 
