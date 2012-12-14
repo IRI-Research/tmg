@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_save
 from fields import JSONField
 from django.contrib.auth.models import User
 import tmg.operations as operations
@@ -94,7 +93,7 @@ class Process(models.Model):
         if self.status == self.CREATED:
             # Start the process
             from tasks import start_process
-            task = start_process.delay(self.pk)
+            start_process.delay(self.pk)
 
     def delete(self, *p, **kw):
         """Cancelling an operation.
