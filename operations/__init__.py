@@ -26,16 +26,23 @@ class Operation(object):
     def __init__(self, source=None, destination=None, parameters=None, progress_callback=None, finish_callback=None):
         """Instanciation
 
+        If destination is None, then the Operation is in charge of
+        generating a default one.
+
         Signature for callback methods:
         callback(progress=float, label=string)
+        where progress is a float [0 - 1.0].
 
-        progress is a float [0 - 1.0].
-
-        source: the source filename
-        destination: destination filename or dirname
-        parameters: a dictionary holding the parameters
-        progress_callback: a callback method for progress report
-        finish_callback: a callback method for achivement notification
+        @param source: the source filename
+        @type source: a string (path)
+        @param destination: destination filename or dirname
+        @type destination: a string (path)
+        @param parameters: a dictionary holding the parameters
+        @type parameters: dict
+        @param progress_callback: a callback method for progress report
+        @type progress_callback: a method with the signature callback(progress=float, label=string)
+        @param finish_callback: a callback method for achievement notification
+        @type finish_callback: a method
         """
         self.source = source
         self.destination = destination
