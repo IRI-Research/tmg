@@ -43,6 +43,11 @@ class TranscodeOperation(Operation):
             fcntl.F_SETFL,
             fcntl.fcntl(pipe.stdout.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK,
             )
+        fcntl.fcntl(
+            pipe.stderr.fileno(),
+            fcntl.F_SETFL,
+            fcntl.fcntl(pipe.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK,
+            )
         # Handbrake regexp:
         # Encoding: task 1 of 1, 0.96 % (289.22 fps, avg 242.52 fps, ETA 00h10m24s)
         progress_regexp = re.compile(r"""Encoding:.+?([.\d]+)\s+%""")
