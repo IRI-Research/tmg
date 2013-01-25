@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from datetime import datetime
 
 from celery import current_task
@@ -30,7 +33,8 @@ def start_process(pid, callback=None):
 
         logger.info("Finished process %s" % proc)
     except Exception, e:
-        logger.info("Failed process %s: %s" % (proc, unicode(e)))
+        e, v, tb = sys.exc_info()
+        logger.info("Failed process %s: %s" % (proc, traceback.format_exception(e, v, tb)))
         # FIXME: log reason in the DB ?
         proc.status = proc.ABORTED
         proc.finished_on = datetime.now()
