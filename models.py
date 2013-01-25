@@ -102,13 +102,12 @@ class Process(models.Model):
         It will not delete the resource itself, rather put it in the
         CANCELLING (then CANCELLED) state.
         """
-        self.status = self.CANCELLING
-        self.save()
-        # Cancel the task
-        if self.task_id:
-            revoke(self.task_id, terminate=True)
-        else:
-            raise Exception("No associated task")
+        if self.status in (self.CREATED, self.STARTED):
+            self.status = self.CANCELLING
+            self.save()
+            # Cancel the task
+            if self.task_id:
+                revoke(self.task_id, terminate=True)
 
     def start(self):
         """Start the process.
