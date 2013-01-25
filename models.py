@@ -49,7 +49,7 @@ class Process(models.Model):
                                   help_text='Source filename for the operation')
 
     # id of the operation (transcode, shotdetect, etc)
-    operation = models.CharField(max_length=255, help_text='Operation class identifier', choices=[ (name, kl.__doc__.splitlines()[0]) for (name, kl) in operations.REGISTERED_OPERATIONS ])
+    operation = models.CharField(max_length=255, help_text='Operation class identifier', choices=operations.list_registered_operations())
     task_id = models.CharField(max_length=255, editable=False)
 
     created_on = models.DateTimeField(null=True, editable=False, auto_now=True, help_text='Process created on')
