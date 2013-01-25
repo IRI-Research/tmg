@@ -32,6 +32,7 @@ class TranscodeOperation(Operation):
         """Start processing the file.
         """
         cmdline = PROFILE_LIST[self.parameters['profile']].cmdline
+        print "**** Launching", cmdline
         pipe = subprocess.Popen(
             shlex.split(cmdline % { 'input': self.source, 'output': self.destination }),
             stdout=subprocess.PIPE,
@@ -53,9 +54,9 @@ class TranscodeOperation(Operation):
         progress_regexp = re.compile(r"""Encoding:.+?([.\d]+)\s+%""")
         eta_regexp = re.compile("ETA\s+([\d\w]+)")
         while True:
-            readx = select.select([pipe.stdout.fileno()], [], [])[0]
+            readx = select.select([pipe.stderr.fileno()], [], [])[0]
             if readx:
-                chunk = pipe.stdout.read()
+                chunk = pipe.stderr.read()
                 if chunk == '':
                     break
                 m = progress_regexp.match(chunk)

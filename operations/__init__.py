@@ -1,4 +1,10 @@
+import os
+import imp
+
 REGISTERED_OPERATIONS = { }
+
+def list_registered_operations():
+    return [ (name, kl.__doc__.splitlines()[0]) for (name, kl) in REGISTERED_OPERATIONS.iteritems() ]
 
 # Register decorator
 def register_operation(name=None):
@@ -63,6 +69,7 @@ class Operation(object):
         if self.progress_callback is not None:
             return self.progress_callback(progress, label)
         else:
+            print "Progress", progress, (label or "")
             return True
 
     @staticmethod
@@ -72,3 +79,17 @@ class Operation(object):
         @returns: a list of couples (value_description, value)
         """
         return []
+
+def load_modules():
+    """Load all operation modules.
+    """
+    d = os.path.dirname(os.path.realpath(__file__))
+    for name in os.listdir(d):
+        base, ext = os.path.splitext(name)
+        if ext == '.py' and not name.startswith('_'):
+            # A potential module
+            print "Importing", base, "from", d
+            __import__('.'.join((__name__, base)))
+            #fullname = os.path.join(d, name)
+            #with open(fullname, 'r') as f:
+            #    imp.load_source('.'.join( (__name__, name) ), fullname, f)

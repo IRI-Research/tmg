@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 import tmg.operations as operations
 from celery.task.control import revoke
 
+operations.load_modules()
+
 class Process(models.Model):
     """Representation of a process.
     """
