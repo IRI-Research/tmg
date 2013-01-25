@@ -5,6 +5,8 @@ from tmg import models
 
 class ProcessSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.Field(source='owner.username')
+
+    operation = serializers.ChoiceField(choices=models.operations.list_registered_operations())
     parameters = serializers.CharField(required=False)
 
     id = serializers.CharField(source='pk', read_only=True)
