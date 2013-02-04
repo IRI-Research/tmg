@@ -1,9 +1,14 @@
+import os
+
 from django.conf import settings
 from django.db import models
 from fields import JSONField
 from django.contrib.auth.models import User
 import tmg.operations as operations
 from celery.task.control import revoke
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
 
 operations.load_modules()
 
@@ -114,7 +119,17 @@ class Process(models.Model):
         """
         op = operations.REGISTERED_OPERATIONS[self.operation](source=os.path.join(getattr(settings, 'MEDIA_ROOT', ''), self.source),
                                                               destination=None,
-                                                              parameters=self.parameters,
-                                                              progress_callback=None,
-                                                              finish_callback=None)
+                                                              parameters=self.parameters or {},
+                                                              progress_callback=self.progress_callback,
+                                                              finish_callback=self.finish_callback)
         op.start()
+
+    def finish_callback(self):
+        logger.info("Finish callback for "  + unicode(self))
+
+    def progress_callback(self, value=0, msg=None):
+        self.progress = value
+        if msg is not None:
+            self.msg = msg
+        self.save()
+        logger.info("Progress callback %s (%s)" % (unicode(value), msg))
