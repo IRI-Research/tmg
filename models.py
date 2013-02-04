@@ -112,7 +112,7 @@ class Process(models.Model):
     def start(self):
         """Start the process.
         """
-        op = operations.REGISTERED_OPERATIONS[self.operation](source=self.source,
+        op = operations.REGISTERED_OPERATIONS[self.operation](source=os.path.join(getattr(settings, 'MEDIA_ROOT', ''), self.source),
                                                               destination=None,
                                                               parameters=self.parameters,
                                                               progress_callback=None,
