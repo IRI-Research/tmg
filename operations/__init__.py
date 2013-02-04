@@ -1,5 +1,7 @@
 import os
-import imp
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
 
 REGISTERED_OPERATIONS = { }
 
@@ -66,11 +68,10 @@ class Operation(object):
 
         If this method returns False, the process should be aborted.
         """
+        self.log("Progress", progress, label)
         if self.progress_callback is not None:
             return self.progress_callback(progress, label)
-        else:
-            print "Progress", progress, (label or "")
-            return True
+        return True
 
     @staticmethod
     def parameter_values(param):
@@ -79,6 +80,11 @@ class Operation(object):
         @returns: a list of couples (value_description, value)
         """
         return []
+
+    def log(self, *p):
+        """Log a message.
+        """
+        logger.info(u"%s: %s" % (unicode(self.__class__).split('.')[-1], "\n".join(unicode(n) for n in p)))
 
 def load_modules():
     """Load all operation modules.
