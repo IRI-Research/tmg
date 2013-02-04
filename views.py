@@ -17,6 +17,13 @@ def api_root(request, format=None):
             'process': reverse('process-list', request=request),
             })
 
+@api_view(('POST',))
+def cleanup(request, format=None):
+    Process.cleanup_expired_processes()
+    return Response({
+            'process': reverse('process-list', request=request),
+            })
+
 class ProcessList(generics.ListCreateAPIView):
     model = Process
     serializer_class = ProcessSerializer

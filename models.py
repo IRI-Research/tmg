@@ -133,3 +133,8 @@ class Process(models.Model):
             self.msg = msg
         self.save()
         logger.info("Progress callback %s (%s)" % (unicode(value), msg))
+
+    @staticmethod
+    def cleanup_expired_processes():
+        # FIXME: add finished_data__gt=Datetime(now() + 24h)
+        Process.objects.filter(status__in=['finished', 'aborted', 'cancelled']).delete()

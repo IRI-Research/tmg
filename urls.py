@@ -13,5 +13,6 @@ urlpatterns += patterns('',
                         url(r'^api-auth/', include('rest_framework.urls',
                                                    namespace='rest_framework')),
                         url(r'^$', views.api_root),
+                        url(r'^cleanup$', views.cleanup),
                         )
 
