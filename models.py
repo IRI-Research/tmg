@@ -36,6 +36,9 @@ class Process(models.Model):
         (ABORTED, 'Aborted'),
         )
 
+    FINISHED_STATES = (FINISHED, CANCELLED, ABORTED)
+    RUNNING_STATES = (CREATED, STARTED, CANCELLING)
+
     # Principle: a process will store its result (transcoded file,
     # data files such as shot list in JSON format, etc) in a directory
     # named from the task_id. Upon completion, it will keep the
