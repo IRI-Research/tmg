@@ -1,4 +1,7 @@
 import os
+import sys
+import tempfile
+
 from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
@@ -85,6 +88,16 @@ class Operation(object):
         """Log a message.
         """
         logger.info(u"%s: %s" % (unicode(self.__class__).split('.')[-1], "\n".join(unicode(n) for n in p)))
+
+    def get_tempdir(self, prefix='tmg', dirname=None):
+        return unicode(tempfile.mkdtemp('', prefix, dirname), sys.getfilesystemencoding())
+
+    def get_tempfile(self, prefix='tmg', suffix='.bin'):
+        """Return a tempfile name.
+        """
+        (fd, name) = tempfile.mkstemp(suffix=suffix, prefix=prefix)
+        fd.close()
+        return unicode(name, sys.getfilesystemencoding())
 
 def load_modules():
     """Load all operation modules.
