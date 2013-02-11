@@ -6,6 +6,7 @@ from datetime import datetime
 from celery import current_task
 from celery.decorators import task
 from celery.utils.log import get_task_logger
+from celery.signals import task_revoked
 
 from tmg.models import Process
 
@@ -44,3 +45,7 @@ def start_process(pid, callback=None):
     #if callback:
     #    subtask(callback).delay(proc.pk)
     return True
+
+@task_revoked.connect
+def task_revoked(sender, terminated, signum, expired):
+    logger.info("Task revoked" + sender + terminated)
