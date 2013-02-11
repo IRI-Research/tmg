@@ -94,7 +94,7 @@ def load_modules():
         base, ext = os.path.splitext(name)
         if ext == '.py' and not name.startswith('_'):
             # A potential module
-            print "Importing", base, "from", d
+            logger.info("Importing %s from %s" % (base, d))
             __import__('.'.join((__name__, base)))
             #fullname = os.path.join(d, name)
             #with open(fullname, 'r') as f:
