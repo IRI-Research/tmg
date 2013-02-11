@@ -21,3 +21,7 @@ Installation instructions
   
   import djcelery
   djcelery.setup_loader()
+
+- Add TMG urls:
+
+  url(r'^', include('tmg.urls')),
