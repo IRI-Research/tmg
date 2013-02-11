@@ -1,0 +1,18 @@
+* TODO rewrite start_process using rabbitmq to handle communication with model/DB
+
+Define a PROGRESS state, cf http://docs.celeryproject.org/en/latest/userguide/tasks.html
+from celery import current_task
+
+  @celery.task
+  def upload_files(filenames):
+      for i, file in enumerate(filenames):
+          current_task.update_state(state='PROGRESS',
+              meta={'current': i, 'total': len(filenames)})
+
+And configure RabbitMQ comme backend: http://docs.celeryproject.org/en/latest/configuration.html#conf-result-backend    
+You can store arbitrary states on the backends, e.g.:
+
+  @task
+  def mytask(**kwargs):
+     mytask.backend.store_result(kwargs["task"]_id, "uploading", result=None)
+
