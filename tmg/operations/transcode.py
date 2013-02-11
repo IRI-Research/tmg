@@ -11,13 +11,14 @@ from . import Operation, register_operation
 # http://h264.code-shop.com/trac/wiki/Encoding
 
 class Profile(object):
-    def __init__(self, description, cmdline):
+    def __init__(self, description, extension, cmdline):
         self.description = description
+        self.extension = extension
         self.cmdline = cmdline
 
 PROFILE_LIST = {
-    'h264-base': Profile('H264 base profile', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
-    'html5': Profile('HTML5 profile (h264 base)', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
+    'h264-base': Profile('H264 base profile', '.mp4', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
+    'html5': Profile('HTML5 profile (h264 base)', '.mp4', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
 }
 
 @register_operation(name='transcode')
@@ -31,10 +32,13 @@ class TranscodeOperation(Operation):
     def start(self):
         """Start processing the file.
         """
-        cmdline = PROFILE_LIST[self.parameters['profile']].cmdline
-        print "**** Launching", cmdline
+        profile = PROFILE_LIST.get(self.parameters.get('profile'))
+        if profile is None:
+            raise Exception("Bad profile specified")
+
+        self.destination = self.get_tempfile(prefix='transcode', suffix=profile.extension)
         pipe = subprocess.Popen(
-            shlex.split(cmdline % { 'input': self.source, 'output': self.destination }),
+            shlex.split(profile.cmdline % { 'input': self.source, 'output': self.destination }),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             close_fds=True
@@ -61,16 +65,16 @@ class TranscodeOperation(Operation):
                     break
                 m = progress_regexp.match(chunk)
                 if m:
+                    progress = 100 * float(m.group(1))
                     e = eta_regexp.match(chunk)
                     if m:
-                        if self.should_continue(m.group(1), e.group(1)) is False:
+                        if self.should_continue(progress, e.group(1)) is False:
                             break
                     else:
-                        if self.should_continue(m.group(1)) is False:
+                        if self.should_continue(progress) is False:
                             break
             time.sleep(.1)
-        if self.finish_callback is not None:
-            self.finish_callback()
+        self.done({'output': self.destination})
 
     @staticmethod
     def parameter_values(param):

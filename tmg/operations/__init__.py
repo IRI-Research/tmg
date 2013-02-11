@@ -76,6 +76,13 @@ class Operation(object):
             return self.progress_callback(progress, label)
         return True
 
+    def done(self, output=None):
+        """Method invoked upon completion
+        """
+        self.log("Done", output)
+        if self.finish_callback is not None:
+            self.finish_callback(output)
+
     @staticmethod
     def parameter_values(param):
         """Return a list of possible values (list of couples) for the given parameter.

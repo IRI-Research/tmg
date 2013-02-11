@@ -3,7 +3,6 @@ import sys
 import select
 import time
 import subprocess
-import tempfile
 import fcntl
 import re
 from . import Operation, register_operation
@@ -19,7 +18,8 @@ class ShotdetectOperation(Operation):
     def start(self):
         """Start processing the file.
         """
-        self.tempdir = unicode(tempfile.mkdtemp('', 'shotdetect'), sys.getfilesystemencoding())
+        # FIXME: generate a directory with task_id in it?
+        self.tempdir = self.get_tempdir()
         args = [ "/usr/bin/shotdetect", 
                 '-i', self.source.encode('utf8'),
                 '-o', self.tempdir.encode('utf8'),
@@ -56,8 +56,7 @@ class ShotdetectOperation(Operation):
                     break
             # FIXME: active waiting is bad
             time.sleep(.1)
-        if self.finish_callback is not None:
-            self.finish_callback()
+        self.done({'output': self.tempdir})
 
     @staticmethod
     def parameter_values(param):
