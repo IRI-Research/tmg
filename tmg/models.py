@@ -55,6 +55,8 @@ class Process(models.Model):
                                   path=settings.MEDIA_ROOT,
                                   recursive=True,
                                   help_text='Source filename for the operation')
+    # JSON structure holding references to output files/dirs
+    output = JSONField(blank=True)
 
     # id of the operation (transcode, shotdetect, etc)
     operation = models.CharField(max_length=255, help_text='Operation class identifier', choices=operations.list_registered_operations())
@@ -127,8 +129,11 @@ class Process(models.Model):
                                                               finish_callback=self.finish_callback)
         op.start()
 
-    def finish_callback(self):
+    def finish_callback(self, output=None):
         logger.info("Finish callback for "  + unicode(self))
+        if output is not None:
+            self.output = output
+            self.save()
 
     def progress_callback(self, value=0, msg=None):
         self.progress = value
