@@ -25,3 +25,16 @@ Installation instructions
 - Add TMG urls:
 
   url(r'^', include('tmg.urls')),
+
+How to run
+==========
+
+To run the application, `celeryd` must be running. In development
+configuration, run in 2 different terminals:
+
+  ./manage.py celeryd
+
+and
+
+  ./manage.py runserver
+ 
