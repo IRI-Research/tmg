@@ -20,10 +20,11 @@ class ShotdetectOperation(Operation):
         """
         # FIXME: generate a directory with task_id in it?
         self.tempdir = self.get_tempdir()
-        args = [ "/usr/bin/shotdetect", 
-                '-i', self.source.encode('utf8'),
-                '-o', self.tempdir.encode('utf8'),
-                '-s', str(self.parameters.get('sensitivity', 60)) ]
+        args = [ self.find_executable("shotdetect-cmd"),
+                 '-i', self.source.encode('utf8'),
+                 '-o', self.tempdir.encode('utf8'),
+                 '-p',
+                 '-s', str(self.parameters.get('sensitivity', 60)) ]
         self.log("Starting", *args)
         pipe = subprocess.Popen(
             args,
@@ -42,7 +43,8 @@ class ShotdetectOperation(Operation):
             fcntl.fcntl(pipe.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK,
             )
         # Shotdetect regexp:
-        progress_regexp = re.compile(r"""Shot log :: (\d+)""")
+        shotcount = 0
+        progress_regexp = re.compile(r"""^(\w+)\s+(\d+)\s+(\d+)$""")
         self.log("Entering loop")
         while True:
             readx = select.select([pipe.stderr.fileno()], [], [])[0]
@@ -51,9 +53,16 @@ class ShotdetectOperation(Operation):
                 if chunk == '':
                     break
                 m = progress_regexp.match(chunk)
-                if m and self.should_continue(m.group(1)) is False:
-                    self.log("Breaking loop")
-                    break
+                if m:
+                    label, position, total = m.groups()
+                    if label == 'shot':
+                        shotcount += 1
+                        msg = "Found %d shot(s)" % shotcount
+                    else:
+                        msg = None
+                    if self.should_continue(100 * long(position) / long(total), msg) is False:
+                        self.log("Breaking loop")
+                        break
             # FIXME: active waiting is bad
             time.sleep(.1)
         self.done({'output': self.tempdir})
