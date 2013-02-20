@@ -3,9 +3,9 @@ import sys
 import tempfile
 
 from celery.utils.log import get_task_logger
-
 logger = get_task_logger(__name__)
 
+INIT_DONE = False
 REGISTERED_OPERATIONS = { }
 
 def list_registered_operations():
@@ -130,3 +130,7 @@ def load_modules():
             #fullname = os.path.join(d, name)
             #with open(fullname, 'r') as f:
             #    imp.load_source('.'.join( (__name__, name) ), fullname, f)
+
+if not INIT_DONE:
+    INIT_DONE = True
+    load_modules()
