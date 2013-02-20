@@ -106,6 +106,17 @@ class Operation(object):
         fd.close()
         return unicode(name, sys.getfilesystemencoding())
 
+    def find_executable(self, name):
+        """Find the given executable in the PATH.
+
+        Return the full absolute path, None if the executable is not found.
+        """
+        for d in os.environ['PATH'].split(os.path.pathsep):
+            fullname = os.path.join(d, name)
+            if os.path.exists(fullname):
+                return fullname
+        return None
+
 def load_modules():
     """Load all operation modules.
     """
