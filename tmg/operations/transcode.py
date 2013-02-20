@@ -17,8 +17,8 @@ class Profile(object):
         self.cmdline = cmdline
 
 PROFILE_LIST = {
-    'h264-base': Profile('H264 base profile', '.mp4', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
-    'html5': Profile('HTML5 profile (h264 base)', '.mp4', '/usr/bin/HandBrakeCLI -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
+    'h264-base': Profile('H264 base profile', '.mp4', '%(handbrake)s -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
+    'html5': Profile('HTML5 profile (h264 base)', '.mp4', '%(handbrake)s -i "%(input)s" -f mp4 -o "%(output)s" -e x264 -x bframes=2:subme=6:mixed-refs=0:weightb=0:trellis=0:ref=4 -q 26 -E copy:aac'),
 }
 
 @register_operation(name='transcode')
@@ -38,7 +38,12 @@ class TranscodeOperation(Operation):
 
         self.destination = self.get_tempfile(prefix='transcode', suffix=profile.extension)
         pipe = subprocess.Popen(
-            shlex.split(profile.cmdline % { 'input': self.source, 'output': self.destination }),
+            shlex.split(profile.cmdline % {
+                    'input': self.source,
+                    'output': self.destination,
+                    'handbrake':  self.find_executable('HandBrakeCLI'),
+                    'ffmpeg': self.find_executable('ffmpeg'),
+                    }),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             close_fds=True
