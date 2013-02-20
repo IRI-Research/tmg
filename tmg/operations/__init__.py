@@ -103,7 +103,7 @@ class Operation(object):
         """Return a tempfile name.
         """
         (fd, name) = tempfile.mkstemp(suffix=suffix, prefix=prefix)
-        fd.close()
+        os.close(fd)
         return unicode(name, sys.getfilesystemencoding())
 
     def find_executable(self, name):
