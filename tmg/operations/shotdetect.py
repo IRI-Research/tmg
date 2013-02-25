@@ -19,7 +19,7 @@ class ShotdetectOperation(Operation):
         """Start processing the file.
         """
         # FIXME: generate a directory with task_id in it?
-        self.tempdir = self.get_tempdir()
+        self.tempdir = self.get_tempdir(prefix='shotdetect')
         args = [ self.find_executable("shotdetect-cmd"),
                  '-i', self.source.encode('utf8'),
                  '-o', self.tempdir.encode('utf8'),
