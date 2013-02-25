@@ -1,51 +1,73 @@
+import json
+import os
 import sys
-import traceback
 
-from datetime import datetime
-
-from celery import current_task
 from celery.decorators import task
+from celery import current_task
 from celery.utils.log import get_task_logger
-from celery.signals import task_revoked
-
-from tmg.models import Process
-
 logger = get_task_logger(__name__)
 
-@task
-def start_process(pid, callback=None):
-    proc = Process.objects.get(pk=pid)
-    logger.info("Starting process %s" % proc)
+from django.conf import settings
 
-    try:
-        logger.info("------ running %s" % proc)
-        proc.task_id = current_task.request.id
+from tmg import operations
+from .models import Process
+from .states import PROGRESS
 
-        proc.status = proc.STARTED
-        proc.started_on = datetime.now()
-        proc.save()
+REGISTERED_TASKS = {}
 
-        proc.start()
+@task(name="tmg.success_callback", queue='local', ignore_result=True)
+def success_callback(result):
+    sys.stderr.write(u"Success callback %s\n" % unicode(result))
+    logger.info(u"Success callback %s" % unicode(result))
+    p = Process(result['process'])
+    p.output = result['output']
+    p.state = p.FINISHED
+    p.save()
 
-        proc.status = proc.FINISHED
-        proc.finished_on = datetime.now()
-        proc.task_id = ""
-        proc.save()
+@task(name="tmg.failure_callback", queue='local', ignore_result=True)
+def failure_callback(uuid):
+    sys.stderr.write(u"Failture callback for %s\n" % unicode(uuid))
+    logger.info(u"Failure callback for %s" % unicode(uuid))
+    result = AsyncResult(uuid)
+    exc = result.get(propagate=False)
+    ps = Process.objects.filter(task_id=uuid)
+    if len(ps) != 1:
+        # FIXME: oops...
+        logger.error("Cannot find Process associated to task %s" % uuid)
+    else:
+        p = ps[0]
+        p.output = {'traceback': result.traceback}
+        p.state = p.ABORTED
+        p.save()
 
-        logger.info("Finished process %s" % proc)
-    except Exception, e:
-        e, v, tb = sys.exc_info()
-        logger.info("Failed process %s: %s" % (proc, traceback.format_exception(e, v, tb)))
-        # FIXME: log reason in the DB ?
-        proc.status = proc.ABORTED
-        proc.finished_on = datetime.now()
-        proc.task_id = ""
-        proc.save()
+# Generic task method: it will not be registered by itself, but
+# instead will be registered for every defined operation.  Since we
+# pass the operation name as parameter in the json representation, we
+# can instanciate and run the appropriate operation here.
+def start_process(process_as_json_string):
+    ret = None
+    proc = json.loads(process_as_json_string)
+    logger.info("Starting process %s %s" % (proc['id'], current_task.backend))
 
-    #if callback:
-    #    subtask(callback).delay(proc.pk)
-    return True
+    def progress_callback(value=0, label=None):
+        current_task.update_state(state=PROGRESS,
+                                  meta={ 'process': proc.get('id'),
+                                         'value': value,
+                                         'label': label })
 
-@task_revoked.connect
-def task_revoked(sender, terminated, signum, expired):
-    logger.info("Task revoked" + sender + terminated)
+    opclass = operations.REGISTERED_OPERATIONS[proc.get('operation')]
+    op = opclass(source=os.path.join(getattr(settings, 'MEDIA_ROOT', ''),
+                                     proc.get('source')),
+                 destination=proc.get('destination'),
+                 parameters=proc.get('parameters') or {},
+                 progress_callback=progress_callback)
+    ret = op.start()
+    logger.info("Finished process %s" % proc.get('id'))
+    return ret
+
+# Define operations as tasks: For every opclass, define a dynamic
+# op.method that will instanciate the opclass with the deserialized
+# json parameters
+for opname in operations.REGISTERED_OPERATIONS:
+    REGISTERED_TASKS[opname] = task(name="tmg." + opname,
+                                    track_started=True)(start_process)

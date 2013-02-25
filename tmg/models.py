@@ -1,16 +1,19 @@
-import os
+from datetime import datetime
+import json
 
 from django.conf import settings
-from django.db import models
-from fields import JSONField
 from django.contrib.auth.models import User
-import tmg.operations as operations
-from celery.task.control import revoke
-from celery.utils.log import get_task_logger
+from django.db import models
 
+from celery.task.control import revoke
+from celery.result import AsyncResult
+from celery.utils.log import get_task_logger
+from .states import PROGRESS
 logger = get_task_logger(__name__)
 
-operations.load_modules()
+from fields import JSONField
+
+import tmg.operations as operations
 
 class Process(models.Model):
     """Representation of a process.
@@ -120,8 +123,15 @@ class Process(models.Model):
         if self.status == self.CREATED:
             # Start the process
             # Putting the import here works around the circular dependency
-            from tasks import start_process
-            start_process.delay(self.pk)
+            from tasks import REGISTERED_TASKS, success_callback, failure_callback
+            result = REGISTERED_TASKS[self.operation].apply_async((self.to_json_string(), ),
+                                                                  link=success_callback.s(),
+                                                                  link_error=failure_callback.s()
+                                                                  )
+            self.task_id = result.id
+            self.started_on = datetime.now()
+            self.status = self.STARTED
+            super(Process, self).save(*p, **kw)
 
     def delete(self, *p, **kw):
         """Cancelling an operation.
@@ -135,16 +145,6 @@ class Process(models.Model):
             # Cancel the task
             if self.task_id:
                 revoke(self.task_id, terminate=True)
-
-    def start(self):
-        """Start the process.
-        """
-        op = operations.REGISTERED_OPERATIONS[self.operation](source=os.path.join(getattr(settings, 'MEDIA_ROOT', ''), self.source),
-                                                              destination=None,
-                                                              parameters=self.parameters or {},
-                                                              progress_callback=self.progress_callback,
-                                                              finish_callback=self.finish_callback)
-        op.start()
 
     def finish_callback(self, output=None):
         logger.info("Finish callback for "  + unicode(self))
