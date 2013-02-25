@@ -29,12 +29,26 @@ Installation instructions
 How to run
 ==========
 
-To run the application, `celeryd` must be running. In development
-configuration, run in 2 different terminals:
+To run the application, at least a **local** celery worker must be
+running (it is in charge of updating the Django DB upon task
+completion), configured to handle both `celery` and `tmg` queues. In
+development configuration, run in 2 different terminals:
 
-  ./manage.py celeryd
+  ./manage.py celery worker -E -l INFO --queues celery,tmg
 
 and
 
   ./manage.py runserver
- 
+
+To monitor the task activity in real-time, install the `flower`
+application.
+
+General architecture
+====================
+
+The underlying principle is that workers do not have access to the DB:
+they should be independent from the Process model.
+
+Since handling events from the producer is cumbersome, the task of
+updating the Process DB is delegated to workers running in the `tmg`
+queue, which must be local and have access to the Process model.
