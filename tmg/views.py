@@ -29,6 +29,12 @@ class ProcessList(generics.ListCreateAPIView):
     def pre_save(self, obj):
         obj.owner = self.request.user
 
+    def delete(self, request, *args, **kwargs):
+        Process.cleanup_expired_processes()
+        return Response({
+                'process': reverse('process-list', request=request),
+                })
+
 class ProcessDetail(generics.RetrieveUpdateDestroyAPIView):
     model = Process
     serializer_class = ProcessSerializer
