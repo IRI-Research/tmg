@@ -30,7 +30,6 @@ REGISTERED_TASKS = {}
 
 @task(name="tmg.success_callback", queue='local', ignore_result=True)
 def success_callback(result):
-    sys.stderr.write(u"Success callback %s\n" % unicode(result))
     logger.info(u"Success callback %s" % unicode(result))
     p = Process.objects.get(pk=result['process'])
     result.pop('process')
@@ -41,7 +40,6 @@ def success_callback(result):
 
 @task(name="tmg.failure_callback", queue='local', ignore_result=True)
 def failure_callback(uuid):
-    sys.stderr.write(u"Failture callback for %s\n" % unicode(uuid))
     logger.info(u"Failure callback for %s" % unicode(uuid))
     result = AsyncResult(uuid)
     exc = result.get(propagate=False)
