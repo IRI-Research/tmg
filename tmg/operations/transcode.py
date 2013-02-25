@@ -32,7 +32,7 @@ class TranscodeOperation(Operation):
     def start(self):
         """Start processing the file.
         """
-        profile = PROFILE_LIST.get(self.parameters.get('profile'))
+        profile = PROFILE_LIST.get(self.parameters.get('profile', 'html5'))
         if profile is None:
             raise Exception("Bad profile specified")
 
