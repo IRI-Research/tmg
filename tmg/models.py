@@ -160,6 +160,14 @@ class Process(models.Model):
         logger.info("Progress callback %s (%s)" % (unicode(value), msg))
 
     @staticmethod
-    def cleanup_expired_processes():
+    def cleanup_expired_processes(ignore_state=False):
+        """Cleanup processes.
+
+        If ignore_state is True, all obsolete tasks will be removed,
+        regardless of their state.
+        """
         # FIXME: add finished_data__gt=Datetime(now() + 24h)
-        Process.objects.filter(status__in=['finished', 'aborted', 'cancelled']).delete()
+        if ignore_state:
+            Process.objects.all().delete()
+        else:
+            Process.objects.filter(status__in=['finished', 'aborted', 'cancelled']).delete()

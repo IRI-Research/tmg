@@ -16,7 +16,7 @@ def api_root(request, format=None):
 
 @api_view(('POST',))
 def cleanup(request, format=None):
-    Process.cleanup_expired_processes()
+    Process.cleanup_expired_processes(ignore_state=('force' in request.GET))
     return Response({
             'process': reverse('process-list', request=request),
             })
@@ -30,7 +30,7 @@ class ProcessList(generics.ListCreateAPIView):
         obj.owner = self.request.user
 
     def delete(self, request, *args, **kwargs):
-        Process.cleanup_expired_processes()
+        Process.cleanup_expired_processes(ignore_state=('force' in request.GET))
         return Response({
                 'process': reverse('process-list', request=request),
                 })
