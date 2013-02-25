@@ -74,11 +74,6 @@ class Process(models.Model):
                                    editable=False,
                                    default=0,
                                    help_text="Progress information [0..100]")
-    eta = models.CharField(blank=True,
-                           editable=False,
-                           max_length=255,
-                           help_text='Estimated Time of Achievement')
-
     # Operation-specific parameters
     parameters = JSONField(blank=True)
 

@@ -8,10 +8,10 @@ class ProcessAdmin(admin.ModelAdmin):
     fields = ('source', 'operation', 'parameters')
     list_display = ('id', 'owner', 'source', 'operation', 'parameters',
                     'task_id', 'created_on', 'started_on', 'finished_on',
-                    'status', 'progress', 'eta')
+                    'status', 'progress')
     readonly_fields = ('id', 'owner',
                        'task_id', 'created_on', 'started_on', 'finished_on',
-                       'status', 'progress', 'eta')
+                       'status', 'progress')
     list_filter = ('status','source', 'operation',)
 
     def save_model(self, request, obj, form, change):
