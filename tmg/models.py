@@ -70,10 +70,6 @@ class Process(models.Model):
                               default=CREATED,
                               choices=STATUS_CHOICES,
                               help_text="Process status")
-    progress = models.IntegerField(blank=True,
-                                   editable=False,
-                                   default=0,
-                                   help_text="Progress information [0..100]")
     # Operation-specific parameters
     parameters = JSONField(blank=True)
 
@@ -81,7 +77,7 @@ class Process(models.Model):
         if self.status == self.CREATED:
             return "not yet started"
         elif self.status == self.STARTED:
-            return "started on %s" % self.started_on
+            return "started on %s (%d %% done)" % (self.started_on, self.progress)
         elif self.status == self.CANCELLING:
             return "cancelling"
         elif self.status == self.CANCELLED:
@@ -92,6 +88,22 @@ class Process(models.Model):
     def __unicode__(self):
         return u"Operation %s pk=%s on %s: %s" % (self.operation,
                                                   self.pk, self.source, self.current_status())
+
+    @property
+    def progress(self):
+        if self.status == self.CREATED:
+            return 0
+        elif self.status in self.FINISHED_STATES:
+            return 100
+        else:
+            # in self.STARTED
+            if self.task_id:
+                ar = AsyncResult(self.task_id)
+                if ar.state == PROGRESS:
+                    return long(ar.result.get('value', 0))
+                else:
+                    return 10
+        return 0
 
     def save(self, *p, **kw):
         super(Process, self).save(*p, **kw)
