@@ -79,7 +79,9 @@ class TranscodeOperation(Operation):
                         if self.should_continue(progress) is False:
                             break
             time.sleep(.1)
-        self.done({'output': self.destination})
+        ret = {'output': self.destination}
+        self.done(ret)
+        return ret
 
     @staticmethod
     def parameter_values(param):
