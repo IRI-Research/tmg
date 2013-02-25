@@ -105,6 +105,16 @@ class Process(models.Model):
                     return 10
         return 0
 
+    def serialize(self):
+        """Serialize process into JSON structure.
+        """
+        from .serializers import ProcessSerializer
+        return ProcessSerializer().to_native(self)
+
+    def to_json_string(self):
+        dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime) else None
+        return json.dumps(self.serialize(), default=dthandler)
+
     def save(self, *p, **kw):
         super(Process, self).save(*p, **kw)
         if self.status == self.CREATED:
