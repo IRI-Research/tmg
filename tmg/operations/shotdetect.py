@@ -65,7 +65,9 @@ class ShotdetectOperation(Operation):
                         break
             # FIXME: active waiting is bad
             time.sleep(.1)
-        self.done({'output': self.tempdir})
+        ret = {'output': self.tempdir}
+        self.done(ret)
+        return ret
 
     @staticmethod
     def parameter_values(param):
