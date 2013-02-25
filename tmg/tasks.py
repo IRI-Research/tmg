@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from datetime import datetime
 
 from celery.decorators import task
 from celery import current_task
@@ -19,9 +20,11 @@ REGISTERED_TASKS = {}
 def success_callback(result):
     sys.stderr.write(u"Success callback %s\n" % unicode(result))
     logger.info(u"Success callback %s" % unicode(result))
-    p = Process(result['process'])
-    p.output = result['output']
-    p.state = p.FINISHED
+    p = Process.objects.get(pk=result['process'])
+    result.pop('process')
+    p.output = result
+    p.status = p.FINISHED
+    p.finished_on = datetime.now()
     p.save()
 
 @task(name="tmg.failure_callback", queue='local', ignore_result=True)
@@ -63,6 +66,8 @@ def start_process(process_as_json_string):
                  progress_callback=progress_callback)
     ret = op.start()
     logger.info("Finished process %s" % proc.get('id'))
+    # Augment task output with process id
+    ret['process'] = proc.get('id')
     return ret
 
 # Define operations as tasks: For every opclass, define a dynamic
