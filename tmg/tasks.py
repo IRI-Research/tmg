@@ -28,7 +28,9 @@ from .states import PROGRESS
 
 REGISTERED_TASKS = {}
 
-@task(name="tmg.success_callback", queue='local', ignore_result=True)
+# The 'tmg' queue is meant to be run on workers that have access to
+# the Django DB, so that they can update state information.
+@task(name="tmg.success_callback", queue='tmg', ignore_result=True)
 def success_callback(result):
     logger.info(u"Success callback %s" % unicode(result))
     p = Process.objects.get(pk=result['process'])
@@ -38,7 +40,7 @@ def success_callback(result):
     p.finished_on = datetime.now()
     p.save()
 
-@task(name="tmg.failure_callback", queue='local', ignore_result=True)
+@task(name="tmg.failure_callback", queue='tmg', ignore_result=True)
 def failure_callback(uuid):
     logger.info(u"Failure callback for %s" % unicode(uuid))
     result = AsyncResult(uuid)

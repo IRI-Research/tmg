@@ -14,7 +14,9 @@ Installation instructions
   'djcelery',
   [...])
 
-- Setup `celery` by specifying a broker, a result backend and initializing code:
+- Setup `celery` by specifying a RabbitMQ broker (which must be
+  installed and configured, of course), a result backend and
+  initializing code:
 
   # RabbitMQ
   BROKER_URL = 'amqp://guest:guest@localhost:5672//'
