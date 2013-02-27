@@ -20,12 +20,11 @@ from django.db import models
 from celery.task.control import revoke
 from celery.result import AsyncResult
 from celery.utils.log import get_task_logger
-from .states import PROGRESS
 logger = get_task_logger(__name__)
 
-from fields import JSONField
-
-import tmg.operations as operations
+from .states import PROGRESS
+from .fields import JSONField
+from . import operations
 
 class Process(models.Model):
     """Representation of a process.
